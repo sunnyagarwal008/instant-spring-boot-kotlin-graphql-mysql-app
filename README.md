@@ -19,7 +19,7 @@
 #### Security
 JWT authentication is enabled for all endpoints, authentication is in-memory for now but can be replaced by db based `CustomUserDetailsService`
 
-#### How to run locally
+## How to run locally
 
 All you have to do is run gradle bootRun task, this spins up a mysql docker container.  
 ```
@@ -56,6 +56,10 @@ Sample GraphQL mutation query
 
 ![GraphiQL Mutation Query](screenshots/GraphiQLMutation.png?raw=true "GraphiQL Mutation Query")
 
+## Running Integration Tests
+```
+./gradlew test
+```
 
 ## TODO list
 - [X] Spring Boot Kotlin WebApp with GraphQL
