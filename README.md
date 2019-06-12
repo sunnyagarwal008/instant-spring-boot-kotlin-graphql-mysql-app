@@ -45,7 +45,7 @@ X-XSS-Protection: 1; mode=block
 
 Now to use GraphiQL to run graphql queries, we need to set the Authorization header using  [ModHeader](https://chrome.google.com/webstore/detail/modheader/idgpnmonknjnojddfkpgkljpfnnfcklj?hl=en) chrome extension 
 
-![Set ModHeader](screenshots/ModHeader.png?raw=true "Setting Authorization Header")
+![Set ModHeader](screenshots/ModHeader.png)
 
 The application can now be accessed at 
 ```
@@ -54,7 +54,7 @@ http://localhost:8080/graphiql
 
 Sample GraphQL mutation query
 
-![GraphiQL Mutation Query](screenshots/GraphiQLMutation.png?raw=true "GraphiQL Mutation Query")
+![GraphiQL Mutation Query](screenshots/GraphiQLMutation.png)
 
 ## Running Integration Tests
 ```
