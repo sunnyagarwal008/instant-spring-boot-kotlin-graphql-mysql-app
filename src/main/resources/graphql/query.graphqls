@@ -1,0 +1,11 @@
+type Query {
+
+    # All
+    persons: [Person]
+
+    # Get person with ID
+    person(id: ID!): Person
+
+    # Get persons by name
+    personsByName(name: String!): [Person]
+}

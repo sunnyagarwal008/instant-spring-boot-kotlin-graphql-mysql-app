@@ -1,0 +1,5 @@
+input PersonInput {
+    name: String!
+    email: String!
+    phoneNumbers: [String]
+}

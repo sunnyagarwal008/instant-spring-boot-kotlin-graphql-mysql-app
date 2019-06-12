@@ -1,0 +1,79 @@
+spring:
+  profiles:
+    active: local
+  application:
+    name: Taxify
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+
+graphql:
+  servlet:
+    mapping: /graphql
+    enabled: true
+    corsEnabled: true
+    # if you want to @ExceptionHandler annotation for custom GraphQLErrors
+    exception-handlers-enabled: true
+    actuator-metrics: true
+    tracing-enabled: false
+    websocket:
+      enabled: false
+
+# Access logs
+server:
+  tomcat:
+    acccesslog:
+      enabled: true
+      directory: logs
+      pattern: common
+---
+spring:
+  profiles: prod
+  data:
+    mongodb:
+      host: ${MONGO_HOST}
+      port: ${MONGO_PORT}
+      database: ${MONGO_DATABASE}
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+  flyway:
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}
+    user: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    schemas: ${MYSQL_DATABASE}
+
+---
+spring:
+  profiles: local
+  jpa:
+    properties:
+      format_sql: true
+    show-sql: true
+  data:
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database: example
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/example?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false
+    username: root
+    password: root
+  flyway:
+    url: jdbc:mysql://127.0.0.1:3306
+    user: root
+    password: root
+    schemas: example
+
+---
+spring:
+  profiles: integration-test
+  jpa:
+    properties:
+      format_sql: true
+    show-sql: true

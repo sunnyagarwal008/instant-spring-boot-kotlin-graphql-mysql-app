@@ -1,0 +1,8 @@
+mutation {
+    personCreate(input: {name: "Sunny", email: "Sunny@testwithphone.com", phoneNumbers: ["123456789"]}) {
+        code
+        name
+        email
+        phoneNumbers {number}
+    }
+}

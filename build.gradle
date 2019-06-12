@@ -1,0 +1,125 @@
+plugins {
+    id 'org.springframework.boot' version '2.1.4.RELEASE'
+    id "io.spring.dependency-management" version "1.0.7.RELEASE"
+    id 'org.jetbrains.kotlin.jvm' version '1.3.0'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.3.31'
+    id "org.jetbrains.kotlin.plugin.jpa" version "1.3.31"
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+ext {
+    mySQLDockerContainerName = "example-mysql"
+    localDbName = "example"
+    localDbPort = 3306
+    localDbUser = "root"
+    localDbPassword = "root"
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // logging
+    implementation 'net.rakugakibox.spring.boot:logback-access-spring-boot-starter:2.7.1'
+    
+    // Flyway for DB migrations
+    implementation "org.flywaydb:flyway-core:5.2.4"
+
+    runtime 'mysql:mysql-connector-java'
+
+    // Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.10.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.10.5'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.10.5'
+
+    // GraphQL
+    implementation 'com.graphql-java-kickstart:graphql-spring-boot-starter:5.9.0'
+    implementation 'com.graphql-java-kickstart:graphiql-spring-boot-starter:5.9.0'
+
+    // Distributed scheduler
+    implementation 'net.javacrumbs.shedlock:shedlock-spring:2.5.0'
+    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:2.5.0'
+
+    // Metrics
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    //implementation 'com.careykevin:graphql-actuator:0.0.3'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'com.graphql-java-kickstart:graphql-spring-boot-starter-test:5.9.0'
+    testImplementation 'org.testcontainers:testcontainers:1.11.3'
+    testImplementation "org.testcontainers:mysql:1.11.3"
+    testRuntime 'mysql:mysql-connector-java'
+}
+
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ['-Xjsr305=strict']
+        jvmTarget = '1.8'
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ['-Xjsr305=strict']
+        jvmTarget = '1.8'
+    }
+}
+
+def isDockerContainerRunning(imageName) {
+    def dockerPsOutput = new ByteArrayOutputStream()
+    project.exec {
+        executable = "docker"
+        args = ["ps"]
+        standardOutput = dockerPsOutput
+    }
+    return dockerPsOutput.toString().contains(imageName)
+}
+
+task startMySQLServer() {
+    description = "Starts up a MySQL database server (if it isn't already running) in a Docker container on port " +
+            "$localDbPort, and blocks until it's ready to accept connections"
+
+    doFirst {
+        if (!isDockerContainerRunning(mySQLDockerContainerName)) {
+            exec {
+                workingDir = project.rootDir.getAbsolutePath()
+                executable = "docker"
+                args = ["run", "--rm", "-t", "--name", mySQLDockerContainerName, "-d", "-p", "$localDbPort:$localDbPort",
+                        "-e", "MYSQL_ROOT_PASSWORD=$localDbPassword", "mysql:5.7.22"]
+            }
+            exec {
+                workingDir = project.rootDir.getAbsolutePath()
+                environment DB_HOST: "127.0.0.1"
+                executable = "bash"
+                args = ["-c", "./bin/wait-until-mysql-is-ready.sh"]
+            }
+        }
+    }
+}
+
+task creatLocalMySQL(dependsOn: startMySQLServer) {
+    description = "Creates the '$localDbName' database if it doesn't already exist"
+    doFirst {
+        exec {
+            workingDir = project.rootDir.getAbsolutePath()
+            environment MYSQL_HOST: "127.0.0.1", MYSQL_PORT: localDbPort, MYSQL_USER: localDbUser, MYSQL_PWD: localDbPassword
+            executable = "bash"
+            args = ["-c", "./bin/create-db-if-does-not-exist.sh \"$localDbName\""]
+        }
+    }
+}
+
+bootRun.dependsOn(dependsOn: ['creatLocalMySQL'])

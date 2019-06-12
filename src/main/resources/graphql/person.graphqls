@@ -1,0 +1,6 @@
+type Person {
+    code: ID!
+    name: String!
+    email: String!
+    phoneNumbers: [PhoneNumber]
+}
